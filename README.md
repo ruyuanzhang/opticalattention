@@ -28,6 +28,7 @@ Last updated: 12/
 * *Localizer_PCA.m* has been carefully documented. This is the program that performs PCA on localizer data.
 * *mainExp_PCA\*\*.m* are programs that perform PCA on main experiment dataset
 * ON and OFF indicate the main experiment and retrain datasets
+* The *localizer_PCA.m* has been carefully documented. The mainExp* programs are almost the same.
 
 
 
