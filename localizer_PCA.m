@@ -6,6 +6,9 @@ clear all;close all;clc;
 cd /home/range1-raid2/sgwarren-data/Deviant/Kananga/Data/Deviant/K  % go to the data folder
 datadir = '/home/range1-raid3/sgwarren/matlab/Deviant/Data/K';
 
+%cd /home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B
+%datadir = '/home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B';
+
 addpath(genpath('~/Dropbox/stonesync/19attentionprobV1optimaging'));
 rmpath(genpath('/home/range1-raid3/sgwarren/matlab/Deviant/PhaseOne'));
 
@@ -18,11 +21,11 @@ posiTuningImg = ImageHelper.convertSparseToFull(posidata.S,posidata.IX, posidata
 
 
 %% other setup
-timeWindow = 5:20; 
+timeWindow = 3:15; 
 % between all 1 x 33 time points, we only want to extract part of them
 % Monkey B: 5-20; Monkey K: 3-15
 
-stimOnset = 11; % stimulus onset frame
+stimOnset = 6; % stimulus onset frame
 % Frame 11 stimulus onset for Monkey B; frame 6 stimulus onset for Monkey K;
 
 % You may want to mask out some pixels, like "" 
@@ -79,7 +82,7 @@ posiTuningImg = cellfun(@(x,y) x(y,:)', posiTuningImg, nanMask, 'UniformOutput',
 
 % In each condition, remove the mean activity, help remove effects of bubbles.
 if wantdemean
-    posiTuningImg = cellfun(@(x) x-mean(x,2), posiTuningImg, 'UniformOutput',0);
+    posiTuningImg = cellfun(@(x) x-repmat(mean(x,2),1,size(x,2)), posiTuningImg, 'UniformOutput',0);
 end
 
 %% --------------- do grand PCA --------------------- 
@@ -94,11 +97,19 @@ grandImg = cat(2,posiTuningImg{:});
 [U,S,VT] = svd(grandImg,'econ');
 
 % let's visualize the first K components
+close all;
 h=figure;
-myplot(timeWindow,-U(:,1:K)');
-straightline(stimOnset,'v','r'); % add the stimulus onset line
-xlabel('Frame#');ylabel('Response');
-%print(h,'-dpdf','-painters','-r300','vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
+set(h,'Position',[0 0 500 400]);
+lh=myplot((timeWindow-stimOnset) * 0.2, -U(:,1:K)');
+straightline(0,'v','k'); % add the stimulus onset line
+xlabel('SOA (sec)');ylabel('Signal change (%)');
+set(lh(1),'Color','r');
+set(lh(2),'Color','b');
+legend(lh,{'PC1','PC2'}, 'Box','off');
+set(gca,'Color','none');
+
+
+%print(h,'-dpdf','-painters','-r300','~/Dropbox/stonsync/19attentionprobV1optimaging/vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
 
 %% calculate the projected the average images for the 1st pc
 compoGrand = -U(:,1); % We only project the first component
@@ -115,18 +126,25 @@ for i=1:9; valueImg{i}(nanMask{i})=valueLoad{i}; end
 % valueImg is a 1 x 9 cell, each element is a 316 x 316 matrix
 
 % concatenate all iamges
-valueImg_mat = cat(3, valueImg{:}); % concatenate images
+valueImg_mat = cat(3, valueImg{[9 3 6 8 2 5 7 1 4]}); % concatenate images
 
 % substract the mean image in each image
-valueImg_mat_demean = valueImg_mat-nanmean(valueImg_mat,3);
+valueImg_mat_demean = valueImg_mat-repmat(nanmean(valueImg_mat,3),[1 1 9]);
 
 %% Visualize the projection on the 1st component
 close all;
 h=figure;
-imagesc(makeimagestack(valueImg_mat_demean)); 
-caxis([-0.5, 0.5]); colorbar();
+set(h,'Position',[0 0 800 600]);
+imagesc(makeimagestack(valueImg_mat_demean)); % we need to rerange the order of the figure
+set(gca,'visible','off');
+caxis([-0.5, 0.5]); c = colorbar;
+c.label.string='Signal change (%)';
+savefig(h,'K_localizer_map.fig')
 %print(h,'-dpdf','-painters','-r300','vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
 
+
+
+% ======= below is optinal ===========
 % Demean the other side as a comparison
 otherSideImg2 = cellfun(@(x) nanmean(nanmean(x,4),3), otherSideImg, 'UniformOutput', 0);
 otherSideImg2 = nanmean(cat(3, otherSideImg2{:}),3);
@@ -135,6 +153,7 @@ close all;
 h = figure;
 imagesc(makeimagestack(valueImg_mat_demean)); 
 caxis([-0.5, 0.5]);colorbar();
+
 %print(h,'-dpdf','-painters','-r300','vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
 
 

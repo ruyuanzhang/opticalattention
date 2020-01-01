@@ -17,9 +17,7 @@ deviantPos_OFF = zeros(1, nOffTrials);
 for i = 1:nOffTrials
     deviantPos_OFF(i) = off.T(i).trialDescription.stimulusIndex;
 end
-
-
-%% Now group image into different conditions
+% Now group image into different conditions
 stimulusCondOFF = unique(deviantPos_OFF);
 imgOFF = cell(1, length(stimulusCondOFF));
 for i = 1:26
@@ -28,11 +26,13 @@ end
 % Now we save the average image for each condition
 allImg = cellfun(@(x) nanmean(nanmean(x,4),3), imgOFF, 'UniformOutput', 0);
 allImg = cat(3, allImg{:});
+
+
 close all;
 h = figure;
-imagesc(makeimagestack(allImg));colorbar(); caxis([-2, 2])
-saveas(h, '~/Dropbox/stonesync/19attentionprobV1optimaging/B_mainExpOFF_avgImg.png');
-close all;
+set(h, 'Position', [0 0 800 600])
+imagesc(makeimagestack(allImg));colorbar(); caxis([-0.5, 0.5])
+savefig(h, 'B_main_OFF_avgmap.fig');
 
 
 %% 
@@ -64,15 +64,27 @@ if wantdemean
 end
 
 %% --------------- do grand PCA --------------------- 
+% We perform a PCA on the combined images from the average-trial images
+% across all conditions
+
+% combine all avg images
+grandImg = cat(2,posiTuningImg{:});
+
+% run singular vector decomposition
+% the U is the eigen vectors sorted by its eigen values
+[U,S,VT] = svd(grandImg,'econ');
+
+% let's visualize the first K components
 close all;
 h=figure;
-grandImg = cat(2,posiTuningImg{:});
-[U,S,VT] = svd(grandImg,'econ');
-myplot(timeWindow,-U(:,1:2)');
-straightline(stimOnset,'v','r');
-xlabel('Frame#');ylabel('Response');
-saveas(h,'~/Dropbox/stonesync/19attentionprobV1optimaging/B_mainExpOFF_PCA_2PC.png');
-close all;
+set(h,'Position',[0 0 500 400]);
+lh=myplot((timeWindow-stimOnset) * 0.2, -U(:,1:K)');
+straightline(0,'v','k'); % add the stimulus onset line
+xlabel('SOA (sec)');ylabel('Signal change (%)');
+set(lh(1),'Color','r');
+set(lh(2),'Color','b');
+legend(lh,{'PC1','PC2'}, 'Box','off');
+set(gca,'Color','none');
 
 %% calculate the projected the image average trials for the 1st pc
 compoGrand = -U(:,1); % We only project the first component
