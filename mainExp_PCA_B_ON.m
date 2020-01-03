@@ -20,7 +20,7 @@ end
 % Now group image into cells based on stimulusIndex
 stimulusCondON = unique(deviantPos_ON);
 imgON = cell(1, length(stimulusCondON));
-for i = 1:26
+for i = 1:length(stimulusCondON)
     imgON{i} = onImg(:,:,:,deviantPos_ON==(i-2));
 end
 % We save the average image for each condition
@@ -31,7 +31,8 @@ close all;
 h = figure;
 set(h, 'Position', [0 0 800 600]);
 imagesc(makeimagestack(allImg));colorbar(); caxis([-0.5, 0.5]);
-savefig(h, 'B_main_ON_avgmap.fig');
+
+%savefig(h, 'B_main_ON_avgmap.fig');
 
 
 %% set PCA parameters
@@ -42,7 +43,8 @@ wantdemean = 1; % whether to demean the data
 K = 2; % how many component you want
 
 %%
-posiTuningImg = imgON(3:end); % remove the condition -1 and 0
+%posiTuningImg = imgON(3:end); % Remove the condition -1 and 0
+posiTuningImg = imgON(1:end); % Remove the condition -1 and 0
 posiTuningImg = cellfun(@(x) permute(x,[1 2 4 3]), posiTuningImg, 'UniformOutput',0); % height X width X trial X time;
 posiTuningImgCopy = posiTuningImg;
 
@@ -69,7 +71,7 @@ end
 % combine all avg images
 grandImg = cat(2,posiTuningImg{:});
 
-% run singular vector decomposition
+% Run singular vector decomposition
 % the U is the eigen vectors sorted by its eigen values
 [U,S,VT] = svd(grandImg,'econ');
 
@@ -86,7 +88,7 @@ legend(lh,{'PC1','PC2'}, 'Box','off');
 set(gca,'Color','none');
 
 
-savefig(h,'B_main_ON_PC.fig');
+savefig(h,'testB_main_ON_PC.fig');
 
 %% calculate the projected the image average trials for the 1st pc
 compoGrand = -U(:,1); % We only project the first component

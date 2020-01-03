@@ -3,11 +3,11 @@
 clear all;close all;clc;
 
 %% load data
-cd /home/range1-raid2/sgwarren-data/Deviant/Kananga/Data/Deviant/K  % go to the data folder
-datadir = '/home/range1-raid3/sgwarren/matlab/Deviant/Data/K';
+%cd /home/range1-raid2/sgwarren-data/Deviant/Kananga/Data/Deviant/K  % go to the data folder
+%datadir = '/home/range1-raid3/sgwarren/matlab/Deviant/Data/K';
 
-%cd /home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B
-%datadir = '/home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B';
+cd /home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B
+datadir = '/home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B';
 
 addpath(genpath('~/Dropbox/stonesync/19attentionprobV1optimaging'));
 rmpath(genpath('/home/range1-raid3/sgwarren/matlab/Deviant/PhaseOne'));
@@ -21,11 +21,11 @@ posiTuningImg = ImageHelper.convertSparseToFull(posidata.S,posidata.IX, posidata
 
 
 %% other setup
-timeWindow = 3:15; 
+timeWindow = 5:20; 
 % between all 1 x 33 time points, we only want to extract part of them
 % Monkey B: 5-20; Monkey K: 3-15
 
-stimOnset = 6; % stimulus onset frame
+stimOnset = 11; % stimulus onset frame
 % Frame 11 stimulus onset for Monkey B; frame 6 stimulus onset for Monkey K;
 
 % You may want to mask out some pixels, like "" 
@@ -53,8 +53,14 @@ end
 % now img is a 1 x 18 cell, each element is a length x width x time_points
 % x trial matrix
 
-otherSideImg = img(10:18); % condition 10-18 is from the other side
-posiTuningImg = img(1:9); % we only need the first 9 positions
+otherSideImg = img(10:18); % Condition 10-18 is from the other side
+
+%===== note here======
+posiTuningImg = img(1:end); % We only need the first 9 positions
+% Here we should decide whether we use all 18 conditions and only first 9
+% conditions
+
+%posiTuningImg = otherSideImg;
 posiTuningImg = cellfun(@(x) permute(x,[1 2 4 3]), posiTuningImg, 'UniformOutput',0); % height X width X trial X time;
 posiTuningImgCopy = posiTuningImg;
 
@@ -96,10 +102,10 @@ grandImg = cat(2,posiTuningImg{:});
 % the U is the eigen vectors sorted by its eigen values
 [U,S,VT] = svd(grandImg,'econ');
 
-% let's visualize the first K components
+% Let's visualize the first K components
 close all;
 h=figure;
-set(h,'Position',[0 0 500 400]);
+set(h,'Position',[0 0 400 300]);
 lh=myplot((timeWindow-stimOnset) * 0.2, -U(:,1:K)');
 straightline(0,'v','k'); % add the stimulus onset line
 xlabel('SOA (sec)');ylabel('Signal change (%)');
@@ -107,9 +113,7 @@ set(lh(1),'Color','r');
 set(lh(2),'Color','b');
 legend(lh,{'PC1','PC2'}, 'Box','off');
 set(gca,'Color','none');
-
-
-%print(h,'-dpdf','-painters','-r300','~/Dropbox/stonsync/19attentionprobV1optimaging/vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
+savefig(h,'B_localizer_PC_18cond.fig');
 
 %% calculate the projected the average images for the 1st pc
 compoGrand = -U(:,1); % We only project the first component
