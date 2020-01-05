@@ -56,7 +56,8 @@ end
 otherSideImg = img(10:18); % Condition 10-18 is from the other side
 
 %===== note here======
-posiTuningImg = img(1:end); % We only need the first 9 positions
+%posiTuningImg = img(1:end); % We only need the first 9 positions
+posiTuningImg = img(1:9); % We only need the first 9 positions
 % Here we should decide whether we use all 18 conditions and only first 9
 % conditions
 
@@ -135,15 +136,17 @@ valueImg_mat = cat(3, valueImg{[9 3 6 8 2 5 7 1 4]}); % concatenate images
 % substract the mean image in each image
 valueImg_mat_demean = valueImg_mat-repmat(nanmean(valueImg_mat,3),[1 1 9]);
 
+% we crop the map and only keep the activation area
+valueImg_mat_demean2 = valueImg_mat_demean(30:316-30,30:316-30,:);
 %% Visualize the projection on the 1st component
 close all;
 h=figure;
 set(h,'Position',[0 0 800 600]);
-imagesc(makeimagestack(valueImg_mat_demean)); % we need to rerange the order of the figure
+imagesc(makeimagestack(valueImg_mat_demean2)); % we need to rerange the order of the figure
 set(gca,'visible','off');
 caxis([-0.5, 0.5]); c = colorbar;
 c.label.string='Signal change (%)';
-savefig(h,'K_localizer_map.fig')
+savefig(h,'B_localizer_map_crop.fig')
 %print(h,'-dpdf','-painters','-r300','vxssimu_estimation_calclfi1.pdf'); %save the figure to pdf
 
 
