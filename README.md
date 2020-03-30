@@ -18,6 +18,7 @@ Last updated: 01/01/2020
 * In all datasets, the images in different trials have already been preprocessed and aligned to stimulus onset.
 * To access the data, you should at least be able to access to CMRR server 
 * Relevant codes and figures locate at /home/stone/ruyuan/dropbox/stonesync/19attentionprobV1optimaging/opticalattention
+* **For the explanation of the trial information, trial variables, see /home/stone/ruyuan/dropbox/stonesync/19attentionprobV1optimaging/opticalattention/materials/2Re/ Fwd/ Roadmap to Deviant programs.pdf **
 
 
 

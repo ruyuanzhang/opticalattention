@@ -1,4 +1,4 @@
-%% Analyze real experiment data
+%% Analyze real experiment data, run PCA
 
 %% This should be run on atlas, no local copy
 clear all;close all;clc
@@ -6,23 +6,24 @@ clear all;close all;clc
 %% Here it is
 cd /home/range1-raid2/sgwarren-data/Deviant/Blofeld/Data/Deviant/B % monkey B
 % cd /home/range1-raid2/sgwarren-data/Deviant/Kananga/Data/Deviant/K monkey
-
 on = load('DeviantOn_AlignTo_stimulusOnTime.mat');
+
+cd ~/Dropbox/stonesync/19attentionprobV1optimaging/opticalattention/
 onImg = ImageHelper.convertSparseToFull(on.S, on.IX, on.V);
 nOnTrials = size(onImg, 4);
-
 
 %% Read out the trials
 deviantPos_ON = zeros(1,nOnTrials);
 for i = 1:nOnTrials
-    deviantPos_ON(i) = on.T(i).trialDescription.stimulusIndex;
+    deviantPos_ON(i) = on.T(i).trialDescription.deviantPosition;
 end
-% Now group image into cells based on stimulusIndex
+% Now group image into cells based on deviantPosition
 stimulusCondON = unique(deviantPos_ON);
 imgON = cell(1, length(stimulusCondON));
 for i = 1:length(stimulusCondON)
-    imgON{i} = onImg(:,:,:,deviantPos_ON==(i-2));
+    imgON{i} = onImg(:,:,:,deviantPos_ON==(i-1));
 end
+
 % We save the average image for each condition
 allImg = cellfun(@(x) nanmean(nanmean(x,4),3), imgON, 'UniformOutput', 0);
 allImg = cat(3, allImg{:});
@@ -32,7 +33,7 @@ h = figure;
 set(h, 'Position', [0 0 800 600]);
 imagesc(makeimagestack(allImg));colorbar(); caxis([-0.5, 0.5]);
 
-%savefig(h, 'B_main_ON_avgmap.fig');
+savefig(h, 'B_main_ON_avgmap.fig');
 
 
 %% set PCA parameters
@@ -43,7 +44,6 @@ wantdemean = 1; % whether to demean the data
 K = 2; % how many component you want
 
 %%
-%posiTuningImg = imgON(3:end); % Remove the condition -1 and 0
 posiTuningImg = imgON(1:end); % Remove the condition -1 and 0
 posiTuningImg = cellfun(@(x) permute(x,[1 2 4 3]), posiTuningImg, 'UniformOutput',0); % height X width X trial X time;
 posiTuningImgCopy = posiTuningImg;
@@ -88,11 +88,11 @@ legend(lh,{'PC1','PC2'}, 'Box','off');
 set(gca,'Color','none');
 
 
-savefig(h,'testB_main_ON_PC.fig');
+savefig(h,'B_main_ON_PC.fig');
 
-%% calculate the projected the image average trials for the 1st pc
+%% calculate the projected the image average across trials for the 1st pc
 compoGrand = -U(:,1); % We only project the first component
-% We have to adjust the polarity of the PCs
+% We might need to adjust the polarity of the PCs
 valueLoad = cellfun(@(x) compoGrand'*x, posiTuningImg, 'UniformOutput',0); % pixel*pixel X 2
 valueImg = repmat({NaN(1,316*316)},[1,numel(posiTuningImg)]);
 valueImg = cellfun(@(x) reshape(x, [316 316]), valueImg, 'UniformOutput',0);
@@ -101,10 +101,10 @@ for i=1:numel(posiTuningImg); valueImg{i}(nanMask{i})=valueLoad{i}; end
 valueImg_mat = cat(3, valueImg{:}); % concatenate images
 
 % substract the mean images
-%valueImg_mat_demean = valueImg_mat-nanmean(valueImg_mat,3);
+% valueImg_mat_demean = valueImg_mat-nanmean(valueImg_mat,3);
 
 valueImg_mat_demean = valueImg_mat;
 h2 = figure;
 imagesc(makeimagestack(valueImg_mat_demean)); caxis([-0.5, 0.5]);
 colorbar();
-saveas(h2,'~/Dropbox/stonesync/19attentionprobV1optimaging/B_mainExpON_PCA_load.png');
+savefig(h2,'~/Dropbox/stonesync/19attentionprobV1optimaging/B_mainExpON_PCA_load.fig');

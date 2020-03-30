@@ -8,6 +8,8 @@ cd /home/range1-raid2/sgwarren-data/Deviant/Kananga/Data/Deviant/K %monkey K
 
 
 on = load('DeviantOn_AlignTo_stimulusOnTime.mat');
+
+cd ~/Dropbox/stonesync/19attentionprobV1optimaging/opticalattention/
 onImg = ImageHelper.convertSparseToFull(on.S, on.IX, on.V);
 nOnTrials = size(onImg, 4);
 
@@ -15,15 +17,15 @@ nOnTrials = size(onImg, 4);
 %% Read out the trials 
 deviantPos_ON = zeros(1,nOnTrials);
 for i = 1:nOnTrials
-    deviantPos_ON(i) = on.T(i).trialDescription.stimulusIndex;
+    deviantPos_ON(i) = on.T(i).trialDescription.deviantPosition;
 end
 % Now group image into cells based on stimulusIndex
 stimulusCondON = unique(deviantPos_ON);
 imgON = cell(1, length(stimulusCondON));
-for i = 1:26
-    imgON{i} = onImg(:,:,:,deviantPos_ON==(i-2));
+for i = 1:length(stimulusCondON)
+    imgON{i} = onImg(:,:,:,deviantPos_ON==(i-1));
 end
-% we save the average image for each condition
+% We save the average image for each condition
 allImg = cellfun(@(x) nanmean(nanmean(x,4),3), imgON, 'UniformOutput', 0);
 allImg = cat(3, allImg{:});
 
@@ -42,7 +44,7 @@ wantdemean = 1; % whether to demean the data
 K = 2; % how many component you want
 
 %%
-posiTuningImg = imgON(3:end); % we only need the first 9 positions
+posiTuningImg = imgON; % we only need the first 9 positions
 posiTuningImg = cellfun(@(x) permute(x,[1 2 4 3]), posiTuningImg, 'UniformOutput',0); % height X width X trial X time;
 posiTuningImgCopy = posiTuningImg;
 
@@ -62,7 +64,7 @@ if wantdemean
     posiTuningImg = cellfun(@(x) x-repmat(mean(x,2),[1, size(x,2)]), posiTuningImg, 'UniformOutput',0);
 end
 
-%% --------------- do grand PCA ---------------------
+%% --------------- do grand PCA --------------------------------------
 % We perform a PCA on the combined images from the average-trial images
 % across all conditions
 
